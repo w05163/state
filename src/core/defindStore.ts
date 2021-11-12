@@ -15,18 +15,15 @@ export type ChildrenOpt = {
   [key: string]: CreateStore | LengthStoreArray | AsyncStoreArray;
 };
 
-type ChildrenIns<
-  C extends ChildrenOpt,
-  K extends keyof C
-> = C[K] extends CreateStore
-  ? ReturnType<C[K]>
-  : C[K] extends LengthStoreArray | AsyncStoreArray
-  ? Array<ReturnType<C[K][0]>>
+type ChildrenIns<Opt> = Opt extends CreateStore
+  ? ReturnType<Opt>
+  : Opt extends LengthStoreArray | AsyncStoreArray
+  ? Array<ReturnType<Opt[0]>>
   : never;
 
 type ChildrenObj<C extends ChildrenOpt> = {
   // eslint-disable-next-line @typescript-eslint/ban-types
-  [K in keyof C]: ChildrenIns<C, K>;
+  [K in keyof C]: ChildrenIns<C[K]>;
 };
 
 // eslint-disable-next-line @typescript-eslint/ban-types
@@ -37,7 +34,7 @@ interface DefindOption<
   C extends ChildrenOpt,
   G extends Getter<FullState<S, ChildrenObj<C>>>,
   A,
-  M extends Mutations<S, ChildrenObj<C>>,
+  M extends Mutations<S, ChildrenObj<C>, G>,
   K extends Record<string, string>
 > {
   state: () => S;
@@ -56,7 +53,7 @@ export default function defindStore<
   C extends ChildrenOpt,
   G extends Getter<FullState<S, ChildrenObj<C>>>,
   A extends Actions,
-  M extends Mutations<S, ChildrenObj<C>>,
+  M extends Mutations<S, ChildrenObj<C>, G>,
   K extends Record<string, string>
 >(defindOption: DefindOption<S, C, G, A, M, K>) {
   const {
@@ -71,15 +68,15 @@ export default function defindStore<
   Object.entries(children).forEach(([k, ch]) => {
     const key = k as keyof C;
     if (typeof ch === 'function') {
-      childrenIns[key] = ch() as ChildrenIns<C, keyof C>;
+      childrenIns[key] = ch() as ChildrenIns<C[keyof C]>;
     } else if (Array.isArray(ch)) {
       const [createStore, type] = ch;
       if (typeof type === 'number') {
         childrenIns[key] = Array(type)
           .fill(createStore)
-          .map((func) => func()) as ChildrenIns<C, keyof C>;
+          .map((func) => func()) as ChildrenIns<C[keyof C]>;
       } else {
-        childrenIns[key] = [] as ChildrenIns<C, keyof C>;
+        childrenIns[key] = [] as ChildrenIns<C[keyof C]>;
       }
     }
   });

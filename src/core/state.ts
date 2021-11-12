@@ -57,11 +57,15 @@ export type ChildrenState<C extends Children> = {
   [K in keyof C]: StateType<C[K]>;
 };
 
-export type FullState<S, C extends Children> = S & ChildrenState<C>;
+export type FullState<
+  S,
+  C extends Children,
+  G extends Getter<FullState<S, C>> = {}
+> = S & ChildrenState<C> & { $get: GetterState<G> };
 
-export type Mutations<S, C extends Children> = Record<
+export type Mutations<S, C extends Children, G extends Getter<any>> = Record<
   string,
-  (state: FullState<S, C>, ...args: any) => Partial<S>
+  (state: FullState<S, C, G>, ...args: any) => Partial<S>
 >;
 
 type MutationArgs<M> = M extends (state: any, ...args: infer A) => any
@@ -77,7 +81,7 @@ export default class State<
   S,
   C extends Children,
   G extends Getter<FullState<S, C>>,
-  M extends Mutations<S, C>
+  M extends Mutations<S, C, G>
 > {
   /** 状态数据 */
   protected state: S = {} as S;
@@ -100,8 +104,8 @@ export default class State<
 
   /** 监听者回调 */
   private handlers: ((
-    newVal: FullState<S, C>,
-    oldVal: FullState<S, C>
+    newVal: FullState<S, C, G>,
+    oldVal: FullState<S, C, G>
   ) => void)[] = [];
 
   /** 销毁前需执行的清理任务 */
@@ -159,7 +163,7 @@ export default class State<
    * @returns
    */
   public $watch(
-    handler: (newVal: FullState<S, C>, oldVal: FullState<S, C>) => void
+    handler: (newVal: FullState<S, C, G>, oldVal: FullState<S, C, G>) => void
   ) {
     const index = this.handlers.length;
     this.handlers.push(handler);
@@ -171,7 +175,7 @@ export default class State<
 
   /** 获取状态 */
   public $getState() {
-    return { ...this.state, ...this.childrenState };
+    return { ...this.state, ...this.childrenState, $get: this.getter };
   }
 
   /**

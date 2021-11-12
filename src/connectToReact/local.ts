@@ -10,11 +10,13 @@ import type {
   ComponentState,
   FunctionComponent,
 } from 'react';
-import React, { createElement } from 'react';
-import type { ActionKeys, CreateStore } from '.';
-import useStore from '.';
+import React, { createElement, useContext } from 'react';
 import State from '../core/state';
+import type { ActionKeys } from './global';
+import { useStore } from './global';
 import { useOnce } from './hooks';
+
+type CreateStore<S> = () => S;
 
 const contextMap = new Map<Function, any>();
 
@@ -23,7 +25,7 @@ const contextMap = new Map<Function, any>();
  * @param createStore
  * @returns
  */
-export function getContext<S1>(createStore: CreateStore<undefined, S1>) {
+export function getContext<S1>(createStore: CreateStore<S1>) {
   if (contextMap.has(createStore))
     return contextMap.get(createStore) as React.Context<S1>;
   const context = React.createContext(undefined as unknown as S1);
@@ -38,12 +40,12 @@ export function getContext<S1>(createStore: CreateStore<undefined, S1>) {
  * @param actionKeys
  * @returns
  */
-export default function componentWithLocalStore<
+export function componentWithLocalStore<
   S1 extends State<any, any, any, any>,
   S,
   K extends ActionKeys<S1>
 >(
-  createStore: CreateStore<undefined, S1>,
+  createStore: CreateStore<S1>,
   handler: (state: ReturnType<S1['$getState']>) => S,
   actionKeys?: K[]
 ) {
@@ -62,11 +64,11 @@ export default function componentWithLocalStore<
         | string
     ) =>
     (props: Omit<P, keyof SS>) => {
-      const target = useOnce(() => createStore());
-      const [state, actions] = useStore(target, handler, actionKeys);
+      const store = useOnce(() => createStore());
+      const [state, actions] = useStore(store, handler, actionKeys);
       return createElement(
         storeContext.Provider,
-        { value: target },
+        { value: store },
         createElement<P>(TargetCom, {
           ...props,
           ...state,
@@ -77,7 +79,7 @@ export default function componentWithLocalStore<
 }
 
 /**
- * 使用context中传递的store
+ *
  * @param createStore
  * @param handler
  * @param keys
@@ -88,9 +90,32 @@ export function useLocalStore<
   S,
   K extends ActionKeys<S1>
 >(
-  createStore: () => S1,
+  createStore: CreateStore<S1>,
   handler: (state: ReturnType<S1['$getState']>) => S,
-  keys?: K[]
+  actionKeys?: K[]
+): [S, Pick<S1, K>, React.Provider<S1>] {
+  const storeContext = getContext(createStore);
+  const store = useOnce(() => createStore());
+  const [state, actions] = useStore(store, handler, actionKeys);
+  return [state, actions, storeContext.Provider];
+}
+
+/**
+ * 使用context中传递的store
+ * @param createStore
+ * @param handler
+ * @param keys
+ * @returns
+ */
+export function useContextStore<
+  S1 extends State<any, any, any, any>,
+  S,
+  K extends ActionKeys<S1>
+>(
+  createStore: CreateStore<S1>,
+  handler: (state: ReturnType<S1['$getState']>) => S,
+  actionKeys?: K[]
 ): [S, Pick<S1, K>] {
-  return useStore(createStore(), handler, keys);
+  const store = useContext(getContext(createStore));
+  return useStore(store, handler, actionKeys);
 }

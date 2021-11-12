@@ -2,18 +2,37 @@
 /* eslint-disable max-classes-per-file */
 //
 import React from 'react';
-import useStore, { connect } from '../src/connectToReact';
+import {
+  componentWithLocalStore,
+  connect,
+  useLocalStore,
+  useStore,
+} from '../src/connectToReact';
 import defindStore from '../src/core/defindStore';
 
 const base = defindStore({
-  state: () => ({ msg: '测试' }),
-  mutations: {
-    setMsg(s, str: string) {
-      return { msg: str };
+  state: () => ({
+    msg: '测试',
+  }),
+  children: {},
+  getter: {
+    getM: (s) => {
+      console.log(s);
+      return s.msg;
     },
   },
+  mutations: {
+    setMsg(s, str: string) {
+      return { msg: s.msg + str };
+    },
+  },
+  // mutations: {
+  //   setMsg(s, str) {
+  //     return { msg: str + s.$get };
+  //   },
+  // },
   actions: {
-    setMsg() {
+    actionSetMsg() {
       this.$commit('setMsg', '');
       return '';
     },
@@ -89,7 +108,7 @@ export default function render() {
     (s) => ({
       count: s.count,
       finish: s.page[0]?.finish,
-      a: state1.getter.getMsg,
+      a: s,
     }),
     ['getData']
   );
@@ -116,8 +135,35 @@ const testA = connect(
   (s) => ({
     count: s.count,
     finish: s.page[0]?.finish,
-    a: state1.getter.getMsg,
+    a: s.$get.getMsg,
   }),
   ['getData']
 )(A);
-testA({ bb: '' });
+testA({ bb: 'ddd' });
+
+const testAA = componentWithLocalStore(
+  useState1,
+  (s) => ({
+    count: s.count,
+    finish: s.page[0]?.finish,
+    a: s.$get.getMsg,
+  }),
+  ['getData']
+)(A);
+
+testAA({ bb: '123' });
+
+const B = () => {
+  const [state, actions, Provider] = useLocalStore(
+    useState1,
+    (s) => ({
+      a: s.count,
+    }),
+    ['getData']
+  );
+
+  console.log(state.a, actions.getData, Provider);
+
+  return null;
+};
+B();
