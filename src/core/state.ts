@@ -63,9 +63,9 @@ export type FullState<
   G extends Getter<FullState<S, C>> = {}
 > = S & ChildrenState<C> & { $get: GetterState<G> };
 
-export type Mutations<S, C extends Children, G extends Getter<any>> = Record<
+export type Mutations<S, State> = Record<
   string,
-  (state: FullState<S, C, G>, ...args: any) => Partial<S>
+  (state: State, ...args: any) => Partial<S>
 >;
 
 type MutationArgs<M> = M extends (state: any, ...args: infer A) => any
@@ -81,7 +81,7 @@ export default class State<
   S,
   C extends Children,
   G extends Getter<FullState<S, C>>,
-  M extends Mutations<S, C, G>
+  M extends Mutations<S, FullState<S, C, G>>
 > {
   /** 状态数据 */
   protected state: S = {} as S;

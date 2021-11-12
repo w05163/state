@@ -34,7 +34,7 @@ interface DefindOption<
   C extends ChildrenOpt,
   G extends Getter<FullState<S, ChildrenObj<C>>>,
   A,
-  M extends Mutations<S, ChildrenObj<C>, G>,
+  M extends Mutations<S, FullState<S, ChildrenObj<C>, G>>,
   K extends Record<string, string>
 > {
   state: () => S;
@@ -53,7 +53,7 @@ export default function defindStore<
   C extends ChildrenOpt,
   G extends Getter<FullState<S, ChildrenObj<C>>>,
   A extends Actions,
-  M extends Mutations<S, ChildrenObj<C>, G>,
+  M extends Mutations<S, FullState<S, ChildrenObj<C>, G>>,
   K extends Record<string, string>
 >(defindOption: DefindOption<S, C, G, A, M, K>) {
   const {
