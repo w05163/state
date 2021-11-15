@@ -86,6 +86,9 @@ export default class State<
   /** 状态数据 */
   protected state: S = {} as S;
 
+  /** 旧数据 */
+  private lastFullState!: FullState<S, C, G>;
+
   /** 唯一id */
   public id = '';
 
@@ -116,6 +119,8 @@ export default class State<
    */
   private mode: Mode = 'root';
 
+  private publishPromise: Promise<void | undefined> | null = null;
+
   constructor({
     id,
     state,
@@ -137,7 +142,20 @@ export default class State<
     this.id = id;
     this.mutations = mutations ?? ({} as M);
     this.mode = mode;
+    this.lastFullState = this.$getState();
     space.set(id, this);
+  }
+
+  // 广播更新
+  private $$publish() {
+    const { handlers } = this;
+    handlers.forEach((callback) => {
+      try {
+        callback(this.$getState(), this.lastFullState);
+      } catch (error) {
+        this.$$onError(error);
+      }
+    });
   }
 
   /** 提交变更 */
@@ -145,16 +163,21 @@ export default class State<
     mutationKey: K,
     ...args: MutationArgs<M[K]>
   ) {
+    if (!this.publishPromise) {
+      this.lastFullState = this.$getState();
+      // 下个微任务广播更新
+      this.publishPromise = Promise.resolve().then(() => this.$$publish());
+    }
     const mutation = this.mutations[mutationKey];
-    const state = mutation(this.$getState(), ...(args as any[]));
-    const newState = { ...this.state };
+    const newState = mutation(this.$getState(), ...(args as any[]));
+    const nextState = { ...this.state };
     // eslint-disable-next-line no-restricted-syntax
-    for (const key in state) {
-      if (Object.prototype.hasOwnProperty.call(newState, key)) {
-        newState[key] = state[key] as S[Extract<keyof S, string>];
+    for (const key in newState) {
+      if (Object.prototype.hasOwnProperty.call(nextState, key)) {
+        nextState[key] = newState[key] as S[Extract<keyof S, string>];
       }
     }
-    this.state = newState;
+    this.state = nextState;
   }
 
   /**
