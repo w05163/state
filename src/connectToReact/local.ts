@@ -117,3 +117,43 @@ export function useContextStore<
   const store = useContext(getContext(createStore));
   return useStore(store, handler, actionKeys);
 }
+
+/**
+ * 使用context中传递的store
+ * @param createStore
+ * @param handler
+ * @param actionKeys
+ * @returns
+ */
+export function componentWithContextStore<
+  S1 extends State<any, any, any, any>,
+  S,
+  K extends ActionKeys<S1>
+>(
+  createStore: CreateStore<S1>,
+  handler: (state: ReturnType<S1['$getState']>) => S,
+  actionKeys?: K[]
+) {
+  type SS = S & Pick<S1, K>;
+  return <P>(
+      TargetCom:
+        | FunctionComponent<P>
+        | ClassType<
+            P,
+            ClassicComponent<P, ComponentState>,
+            ClassicComponentClass<P>
+          >
+        | ClassType<P, Component<P, ComponentState>, ComponentClass<P>>
+        | ComponentClass<P>
+        | string
+    ) =>
+    (props: Omit<P, keyof SS>) => {
+      const store = useContext(getContext(createStore));
+      const [state, actions] = useStore(store, handler, actionKeys);
+      return createElement<P>(TargetCom, {
+        ...props,
+        ...state,
+        ...actions,
+      } as unknown as P);
+    };
+}

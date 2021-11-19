@@ -45,7 +45,7 @@ export function connect<
   K extends ActionKeys<S1>,
   ID
 >(
-  createStore: [CreateStore<S1, ID>, ID?],
+  createStore: [CreateStore<S1, ID>, ID],
   handler: (state: ReturnType<S1['$getState']>) => S,
   actionKeys?: K[]
 ) {
