@@ -8,13 +8,18 @@ import {
   useLocalStore,
   useStore,
 } from '../src/connectToReact';
+import {
+  bindLocalStoreMixin,
+  bindStoreMixin,
+  setupLocalStore,
+  setupStore,
+} from '../src/connectToVue';
 import defindStore from '../src/core/defindStore';
 
 const base = defindStore({
   state: () => ({
     msg: '测试',
   }),
-  children: {},
   getter: {
     getM: (s) => {
       console.log(s);
@@ -26,11 +31,6 @@ const base = defindStore({
       return { msg: s.msg + str };
     },
   },
-  // mutations: {
-  //   setMsg(s, str) {
-  //     return { msg: str + s.$get };
-  //   },
-  // },
   actions: {
     actionSetMsg() {
       this.$commit('setMsg', '');
@@ -99,12 +99,10 @@ const useState1 = defindStore({
   },
 });
 
-const state1 = useState1('abc');
-
 export default function render() {
   // 发生变化时执行handler
   const [state, actions] = useStore(
-    state1,
+    useState1('abc'),
     (s) => ({
       count: s.count,
       finish: s.page[0]?.finish,
@@ -167,3 +165,44 @@ const B = () => {
   return null;
 };
 B();
+
+const m = bindStoreMixin(
+  [useState1, 'abc'],
+  (s) => ({
+    count: s.count,
+    finish: s.page[0]?.finish,
+    a: s.$get.getMsg,
+  }),
+  ['getData']
+);
+
+const setup = setupStore(
+  useState1('abc'),
+  (s) => ({
+    count: s.count,
+    finish: s.page[0]?.finish,
+    a: s.$get.getMsg,
+  }),
+  ['getData']
+);
+const ls = setupLocalStore(
+  useState1,
+  (s) => ({
+    count: s.count,
+    finish: s.page[0]?.finish,
+    a: s.$get.getMsg,
+  }),
+  ['getData']
+);
+
+const bls = bindLocalStoreMixin(
+  useState1,
+  (s) => ({
+    count: s.count,
+    finish: s.page[0]?.finish,
+    a: s.$get.getMsg,
+  }),
+  ['getData']
+);
+
+console.log(m.methods, setup.count, ls.count, bls);

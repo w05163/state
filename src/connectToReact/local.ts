@@ -12,11 +12,9 @@ import type {
 } from 'react';
 import React, { createElement, useContext } from 'react';
 import State from '../core/state';
-import type { ActionKeys } from './global';
+import type { ActionKeys, CreateStore } from '../types/helper';
 import { useStore } from './global';
 import { useOnce } from './hooks';
-
-type CreateStore<S> = () => S;
 
 const contextMap = new Map<Function, any>();
 

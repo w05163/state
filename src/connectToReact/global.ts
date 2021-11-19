@@ -11,38 +11,33 @@ import type {
 } from 'react';
 import { createElement, useEffect, useState } from 'react';
 import type State from '../core/state';
+import type { ActionKeys, CreateStore } from '../types/helper';
 import { useOnce } from './hooks';
-
-export type ActionKeys<S> = {
-  [K in keyof S]: S[K] extends Function ? K : never;
-}[keyof S];
 
 export function useStore<
   S1 extends State<any, any, any, any>,
   S,
   K extends ActionKeys<S1>
 >(
-  target: S1,
+  store: S1,
   handler: (state: ReturnType<S1['$getState']>) => S,
   actionKeys?: K[]
 ): [S, Pick<S1, K>] {
-  const initState = useOnce(() => handler(target.$getState()));
+  const initState = useOnce(() => handler(store.$getState()));
   const [state, setState] = useState(initState);
   useEffect(
     () =>
-      target.$watch((newState) => {
+      store.$watch((newState) => {
         setState(handler(newState));
       }),
-    [target]
+    [store]
   );
   const actions = {} as Pick<S1, K>;
   actionKeys?.forEach((key) => {
-    actions[key] = (target[key] as Function).bind(target);
+    actions[key] = (store[key] as Function).bind(store);
   });
   return [state, actions];
 }
-
-export type CreateStore<ID, S> = (id?: ID) => S;
 
 export function connect<
   S1 extends State<any, any, any, any>,
@@ -50,7 +45,7 @@ export function connect<
   K extends ActionKeys<S1>,
   ID
 >(
-  createStore: [CreateStore<ID, S1>, ID?],
+  createStore: [CreateStore<S1, ID>, ID?],
   handler: (state: ReturnType<S1['$getState']>) => S,
   actionKeys?: K[]
 ) {
@@ -68,8 +63,8 @@ export function connect<
         | string
     ) =>
     (props: Omit<P, keyof SS>) => {
-      const target = createStore[0](createStore[1]);
-      const [state, actions] = useStore(target, handler, actionKeys);
+      const store = createStore[0](createStore[1]);
+      const [state, actions] = useStore(store, handler, actionKeys);
       return createElement<P>(TargetCom, {
         ...props,
         ...state,
