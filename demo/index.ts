@@ -3,7 +3,7 @@
 //
 import React from 'react';
 import {
-  componentWithLocalStore,
+  componentWithContextStore,
   connect,
   useLocalStore,
   useStore,
@@ -139,7 +139,7 @@ const testA = connect(
 )(A);
 testA({ bb: 'ddd' });
 
-const testAA = componentWithLocalStore(
+const testAA = componentWithContextStore(
   useState1,
   (s) => ({
     count: s.count,
@@ -149,7 +149,7 @@ const testAA = componentWithLocalStore(
   ['getData']
 )(A);
 
-testAA({ bb: '123' });
+testAA({ bb: 'asdf' });
 
 const B = () => {
   const [state, actions, Provider] = useLocalStore(

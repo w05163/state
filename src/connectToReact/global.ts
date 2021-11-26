@@ -12,7 +12,8 @@ import type {
 import { createElement, useEffect, useState } from 'react';
 import type State from '../core/state';
 import type { ActionKeys, CreateStore } from '../types/helper';
-import { useOnce } from './hooks';
+import { microDebounce } from '../utils';
+import { useOnce } from '../utils/hooks';
 
 export function useStore<
   S1 extends State<any, any, any, any>,
@@ -25,13 +26,12 @@ export function useStore<
 ): [S, Pick<S1, K>] {
   const initState = useOnce(() => handler(store.$getState()));
   const [state, setState] = useState(initState);
-  useEffect(
-    () =>
-      store.$watch((newState) => {
-        setState(handler(newState));
-      }),
-    [store]
-  );
+  useEffect(() => {
+    const fun = (newState: ReturnType<S1['$getState']>) => {
+      setState(handler(newState));
+    };
+    store.$watch(microDebounce(fun));
+  }, [store]);
   const actions = {} as Pick<S1, K>;
   actionKeys?.forEach((key) => {
     actions[key] = (store[key] as Function).bind(store);

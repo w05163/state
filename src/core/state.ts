@@ -119,8 +119,6 @@ export default class State<
    */
   private mode: Mode = 'root';
 
-  private publishPromise: Promise<void | undefined> | null = null;
-
   constructor({
     id,
     state,
@@ -163,11 +161,7 @@ export default class State<
     mutationKey: K,
     ...args: MutationArgs<M[K]>
   ) {
-    if (!this.publishPromise) {
-      this.lastFullState = this.$getState();
-      // 下个微任务广播更新
-      this.publishPromise = Promise.resolve().then(() => this.$$publish());
-    }
+    this.lastFullState = this.$getState();
     const mutation = this.mutations[mutationKey];
     const newState = mutation(this.$getState(), ...(args as any[]));
     const nextState = { ...this.state };
@@ -178,6 +172,7 @@ export default class State<
       }
     }
     this.state = nextState;
+    this.$$publish();
   }
 
   /**
