@@ -2,8 +2,9 @@
   "name": "my-state",
   "private": true,
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "build:cjs": "tsc -b ./tsconfig.cjs.json",
+    "build:es": "tsc -p ./tsconfig.esm.json",
+    "build:es1": "tsc -h",
     "lint:script": "eslint \"src/**/*.{ts,js}\"",
     "lint:format": "prettier . --check",
     "lint:type": "tsc --noEmit",

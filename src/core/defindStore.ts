@@ -81,6 +81,8 @@ export default function defindStore<
     }
   });
 
+  type SC = State<S, ChildrenObj<C>, G, M> & A;
+
   class StoreClass extends State<S, ChildrenObj<C>, G, M> {
     constructor(id: string, mode?: Mode) {
       super({
@@ -104,7 +106,7 @@ export default function defindStore<
     if (!mapId) mapId = `${tempPrefix}${++count}`;
     if (mapId.startsWith(tempPrefix)) mode = 'temp';
 
-    const ins = new StoreClass(mapId, mode) as StoreClass & A;
+    const ins = new StoreClass(mapId, mode) as SC;
     if (setup) {
       const clearUp = setup.call(ins);
       if (clearUp) ins.addClearTask(clearUp);
@@ -112,7 +114,10 @@ export default function defindStore<
     return ins;
   };
 
-  getStore.StoreClass = StoreClass;
+  getStore.StoreClass = StoreClass as new (
+    id: string,
+    mode?: Mode | undefined
+  ) => SC;
   getStore.option = defindOption;
   return getStore;
 }

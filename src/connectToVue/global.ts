@@ -79,39 +79,43 @@ export function bindStoreMixin<
   type Vm = { [dataKey]: S; [offKey]?: Function; [storeKey]: S1 };
 
   return {
-    beforeCreate(this: Vm) {
+    beforeCreate() {
+      const vm = this as unknown as Vm;
       let store = null;
       if (Array.isArray(createStore)) {
         const [create, storeId] = createStore;
         store = create(storeId);
       } else store = createStore;
-      this[storeKey] = store;
+      vm[storeKey] = store;
     },
-    data(this: Vm) {
-      const store = this[storeKey];
+    data(): {} {
+      const vm = this as unknown as Vm;
+      const store = vm[storeKey];
       return {
         [dataKey]: handler(store.$getState()),
       };
     },
-    created(this: Vm) {
-      const store = this[storeKey];
+    created() {
+      const vm = this as unknown as Vm;
+      const store = vm[storeKey] as S1;
       actionKeys?.forEach((k) => {
         methods[k] = (store[k] as Function).bind(store);
       });
-      Object.keys(this[dataKey]).forEach((i) => {
+      Object.keys(vm[dataKey]).forEach((i) => {
         const k = i as keyof S;
         computed[k] = function (this: { [dataKey]: S }) {
           return this[dataKey][k];
         };
       });
       // 监听状态变化
-      this[offKey] = store.$watch((newVal) => {
+      vm[offKey] = store.$watch((newVal) => {
         const newData = handler(newVal);
-        Object.assign(this[dataKey], newData);
+        Object.assign(vm[dataKey], newData);
       });
     },
-    beforeDestroy(this: Vm) {
-      const off = this[offKey];
+    beforeDestroy() {
+      const vm = this as unknown as Vm;
+      const off = vm[offKey];
       if (off) off();
     },
     computed,

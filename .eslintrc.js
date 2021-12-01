@@ -18,12 +18,11 @@ module.exports = {
   ],
   rules: {
     '@typescript-eslint/explicit-module-boundary-types': ['off'],
-    '@typescript-eslint/no-explicit-any': ['error'],
+    '@typescript-eslint/no-explicit-any': ['off'],
     semi: ['error'],
     'func-names': ['off'],
     'import/no-extraneous-dependencies': ['off'],
     '@typescript-eslint/ban-types': ['off'],
-    '@typescript-eslint/no-explicit-any': ['off'],
     'import/prefer-default-export': ['off'],
   },
 };

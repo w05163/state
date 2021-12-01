@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
-    "target": "esnext",
     "module": "esnext",
+    "target": "es5",
     "moduleResolution": "node",
-    "lib": ["esnext","DOM"],
+    "lib": ["esnext", "DOM"],
     "strict": true,
     "allowJs": false,
     "allowSyntheticDefaultImports": true,
@@ -11,12 +11,13 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "skipLibCheck": true,
-    "noEmit": true,
     "noImplicitAny": true,
+    "declaration": true,
+    "noImplicitThis": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
+      "@/*": ["src/*"]
     }
   },
-  "include": ["src","demo"]
+  "include": ["./src/**/*.ts", "./demo/*.ts"]
 }
