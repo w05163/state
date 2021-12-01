@@ -1,10 +1,11 @@
 {
   "name": "my-state",
   "private": true,
+  "main": "./src/cjs/index.js",
+  "module": "./dist/ejs/index.js",
   "scripts": {
     "build:cjs": "tsc -b ./tsconfig.cjs.json",
     "build:es": "tsc -p ./tsconfig.esm.json",
-    "build:es1": "tsc -h",
     "lint:script": "eslint \"src/**/*.{ts,js}\"",
     "lint:format": "prettier . --check",
     "lint:type": "tsc --noEmit",
@@ -41,5 +42,6 @@
   "engines": {
     "node": "^12.0.0 || ^14.0.0",
     "npm": "^6.0.0"
-  }
+  },
+  "version": "0.0.1"
 }

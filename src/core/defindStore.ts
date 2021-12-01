@@ -52,9 +52,9 @@ export default function defindStore<
   S,
   C extends ChildrenOpt,
   G extends Getter<FullState<S, ChildrenObj<C>>>,
-  A extends Actions,
   M extends Mutations<S, FullState<S, ChildrenObj<C>, G>>,
-  K extends Record<string, string>
+  K extends Record<string, string>,
+  A extends Actions = {}
 >(defindOption: DefindOption<S, C, G, A, M, K>) {
   const {
     state,

@@ -67,6 +67,7 @@ export function bindStoreMixin<
 >(
   createStore: [CreateStore<S1, ID>, ID?] | S1,
   handler: (state: ReturnType<S1['$getState']>) => S,
+  stateKeys: (keyof S)[],
   actionKeys?: K[]
 ) {
   const methods = {} as Pick<S1, K>;
@@ -77,6 +78,20 @@ export function bindStoreMixin<
   const storeKey = Symbol('storeKey');
 
   type Vm = { [dataKey]: S; [offKey]?: Function; [storeKey]: S1 };
+
+  stateKeys.forEach((i) => {
+    const k = i as keyof S;
+    computed[k] = function (this: { [dataKey]: S }) {
+      return this[dataKey][k];
+    };
+  });
+  actionKeys?.forEach((k) => {
+    methods[k] = function (this: any, ...args: any[]) {
+      const vm = this as unknown as Vm;
+      const store = vm[storeKey];
+      return (store[k] as Function).call(store, ...args);
+    } as S1[K];
+  });
 
   return {
     beforeCreate() {
@@ -98,15 +113,6 @@ export function bindStoreMixin<
     created() {
       const vm = this as unknown as Vm;
       const store = vm[storeKey] as S1;
-      actionKeys?.forEach((k) => {
-        methods[k] = (store[k] as Function).bind(store);
-      });
-      Object.keys(vm[dataKey]).forEach((i) => {
-        const k = i as keyof S;
-        computed[k] = function (this: { [dataKey]: S }) {
-          return this[dataKey][k];
-        };
-      });
       // 监听状态变化
       vm[offKey] = store.$watch((newVal) => {
         const newData = handler(newVal);

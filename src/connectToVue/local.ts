@@ -56,9 +56,10 @@ export function bindLocalStoreMixin<
 >(
   createStore: CreateStore<S1>,
   handler: (state: ReturnType<S1['$getState']>) => S,
+  stateKeys: (keyof S)[],
   actionKeys?: K[]
 ) {
-  const options = bindStoreMixin([createStore], handler, actionKeys);
+  const options = bindStoreMixin([createStore], handler, stateKeys, actionKeys);
   const newOptions = {
     ...options,
     provide(this: Record<symbol, S1>) {
@@ -107,9 +108,10 @@ export function bindInjectStoreMixin<
 >(
   createStore: CreateStore<S1>,
   handler: (state: ReturnType<S1['$getState']>) => S,
+  stateKeys: (keyof S)[],
   actionKeys?: K[]
 ) {
-  const options = bindStoreMixin([createStore], handler, actionKeys);
+  const options = bindStoreMixin([createStore], handler, stateKeys, actionKeys);
   const { beforeCreate, ...opt } = options;
   type Vm = Record<symbol | string, S1>;
 

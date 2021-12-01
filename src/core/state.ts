@@ -222,6 +222,7 @@ export default class State<
     this.$addClearTask(
       childrenStore.$watch((newState) => {
         stateArray[length] = newState;
+        this.$$publish();
       })
     );
   }
@@ -270,6 +271,7 @@ export default class State<
           this.$addClearTask(
             ch.$watch((newState) => {
               childrenState[key] = newState;
+              this.$$publish();
             })
           );
         } else if (Array.isArray(ch)) {
@@ -278,6 +280,7 @@ export default class State<
             this.$addClearTask(
               c.$watch((newState) => {
                 childrenState[key][i] = newState;
+                this.$$publish();
               })
             );
             return c.$getState();
