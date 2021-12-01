@@ -14,4 +14,4 @@ export type VueRefMap<S> = {
   [K in keyof S]: Ref<S[K]>;
 };
 
-export type FuncThis<F> = F extends (this: infer T, ...args) => any ? T : never;
+export type FuncThis<F> = F extends (this: infer T) => any ? T : never;
