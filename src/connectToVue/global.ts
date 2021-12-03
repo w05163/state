@@ -2,12 +2,15 @@
 import type { Ref } from '@vue/reactivity';
 import { onBeforeUnmount, ref } from 'vue';
 import State from '../core/state';
-import {
+import type {
+  Action,
   ActionKeys,
+  ActionKeysMap,
   CreateStore,
   VueComputed,
   VueRefMap,
 } from '../types/helper';
+import { makeActions } from '../utils/index';
 
 /**
  * 组合式注入
@@ -19,11 +22,11 @@ import {
 export function setupStore<
   S1 extends State<any, any, any, any>,
   S,
-  K extends ActionKeys<S1>
+  K extends ActionKeysMap<S1>
 >(
   store: S1,
   handler: (state: ReturnType<S1['$getState']>) => S,
-  actionKeys?: K[]
+  actionKeys?: K
 ) {
   const state = handler(store.$getState());
   const refMap = {} as VueRefMap<S>;
@@ -41,14 +44,12 @@ export function setupStore<
     });
   });
 
-  const methods = {} as Pick<S1, K>;
-  actionKeys?.forEach((k) => {
-    methods[k] = (store[k] as Function).bind(store);
-  });
+  const actions = makeActions(store, actionKeys);
+
   onBeforeUnmount(off);
   return {
     ...refMap,
-    ...methods,
+    ...actions,
   };
 }
 
@@ -62,15 +63,15 @@ export function setupStore<
 export function bindStoreMixin<
   S1 extends State<any, any, any, any>,
   S,
-  K extends ActionKeys<S1>,
+  K extends ActionKeysMap<S1>,
   ID
 >(
   createStore: [CreateStore<S1, ID>, ID?] | S1,
   handler: (state: ReturnType<S1['$getState']>) => S,
   stateKeys: (keyof S)[],
-  actionKeys?: K[]
+  actionKeys?: K
 ) {
-  const methods = {} as Pick<S1, K>;
+  const methods = {} as Action<S1, K>;
   const computed = {} as VueComputed<S>;
 
   const dataKey = Symbol('data');
@@ -85,13 +86,28 @@ export function bindStoreMixin<
       return this[dataKey][k];
     };
   });
-  actionKeys?.forEach((k) => {
-    methods[k] = function (this: any, ...args: any[]) {
+  function makeProxyFunc(
+    k: ActionKeys<S1>
+  ): Action<S1, K>[keyof Action<S1, K>] {
+    return function (this: any, ...args: any[]) {
       const vm = this as unknown as Vm;
       const store = vm[storeKey];
-      return (store[k] as Function).call(store, ...args);
-    } as S1[K];
-  });
+      return (store[k] as unknown as Function).call(store, ...args);
+    } as unknown as Action<S1, K>[keyof Action<S1, K>];
+  }
+  if (actionKeys) {
+    if (Array.isArray(actionKeys)) {
+      actionKeys?.forEach((k) => {
+        const key = k as keyof Action<S1, K>;
+        methods[key] = makeProxyFunc(k);
+      });
+    } else {
+      Object.entries(actionKeys).forEach(([funName, key]) => {
+        const fName = funName as keyof Action<S1, K>;
+        methods[fName] = makeProxyFunc(key);
+      });
+    }
+  }
 
   return {
     beforeCreate() {

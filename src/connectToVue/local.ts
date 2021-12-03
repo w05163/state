@@ -1,7 +1,7 @@
 // vue
 import { inject, provide } from 'vue';
 import State from '../core/state';
-import { ActionKeys, CreateStore, FuncThis } from '../types/helper';
+import { ActionKeysMap, CreateStore, FuncThis } from '../types/helper';
 import { bindStoreMixin, setupStore } from './global';
 
 const contextMap = new Map<Function, string>();
@@ -28,11 +28,11 @@ export function getProvideKey<S1>(createStore: CreateStore<S1>) {
 export function setupLocalStore<
   S1 extends State<any, any, any, any>,
   S,
-  K extends ActionKeys<S1>
+  K extends ActionKeysMap<S1>
 >(
   createStore: CreateStore<S1>,
   handler: (state: ReturnType<S1['$getState']>) => S,
-  actionKeys?: K[]
+  actionKeys?: K
 ) {
   const store = createStore();
   const setupData = setupStore(store, handler, actionKeys);
@@ -52,12 +52,12 @@ export function setupLocalStore<
 export function bindLocalStoreMixin<
   S1 extends State<any, any, any, any>,
   S,
-  K extends ActionKeys<S1>
+  K extends ActionKeysMap<S1>
 >(
   createStore: CreateStore<S1>,
   handler: (state: ReturnType<S1['$getState']>) => S,
   stateKeys: (keyof S)[],
-  actionKeys?: K[]
+  actionKeys?: K
 ) {
   const options = bindStoreMixin([createStore], handler, stateKeys, actionKeys);
   const newOptions = {
@@ -81,11 +81,11 @@ export function bindLocalStoreMixin<
 export function setupInjectStore<
   S1 extends State<any, any, any, any>,
   S,
-  K extends ActionKeys<S1>
+  K extends ActionKeysMap<S1>
 >(
   createStore: CreateStore<S1>,
   handler: (state: ReturnType<S1['$getState']>) => S,
-  actionKeys?: K[]
+  actionKeys?: K
 ) {
   const store = inject(getProvideKey(createStore)) as S1;
   const setupData = setupStore(store, handler, actionKeys);
@@ -104,12 +104,12 @@ export function setupInjectStore<
 export function bindInjectStoreMixin<
   S1 extends State<any, any, any, any>,
   S,
-  K extends ActionKeys<S1>
+  K extends ActionKeysMap<S1>
 >(
   createStore: CreateStore<S1>,
   handler: (state: ReturnType<S1['$getState']>) => S,
   stateKeys: (keyof S)[],
-  actionKeys?: K[]
+  actionKeys?: K
 ) {
   const options = bindStoreMixin([createStore], handler, stateKeys, actionKeys);
   const { beforeCreate, ...opt } = options;

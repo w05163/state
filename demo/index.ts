@@ -107,9 +107,9 @@ export default function render() {
       finish: s.page[0]?.finish,
       a: s,
     }),
-    ['getData']
+    { getD1: 'getData' }
   );
-  actions.getData('');
+  actions.getD1('').ss();
 
   return `${state.count}`;
 }
@@ -172,6 +172,7 @@ const m = bindStoreMixin(
     finish: s.page[0]?.finish,
     a: s.$get.getMsg,
   }),
+  ['count', 'finish', 'a'],
   ['getData']
 );
 
@@ -182,8 +183,9 @@ const setup = setupStore(
     finish: s.page[0]?.finish,
     a: s.$get.getMsg,
   }),
-  ['getData']
+  ['$commit']
 );
+
 const ls = setupLocalStore(
   useState1,
   (s) => ({
@@ -201,6 +203,7 @@ const bls = bindLocalStoreMixin(
     finish: s.page[0]?.finish,
     a: s.$get.getMsg,
   }),
+  ['count', 'finish', 'a'],
   ['getData']
 );
 

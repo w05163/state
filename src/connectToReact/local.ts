@@ -12,7 +12,7 @@ import type {
 } from 'react';
 import React, { createElement, useContext } from 'react';
 import State from '../core/state';
-import type { ActionKeys, CreateStore } from '../types/helper';
+import type { Action, ActionKeysMap, CreateStore } from '../types/helper';
 import { useOnce } from '../utils/hooks';
 import { useStore } from './global';
 
@@ -41,13 +41,13 @@ export function getContext<S1>(createStore: CreateStore<S1>) {
 export function componentWithLocalStore<
   S1 extends State<any, any, any, any>,
   S,
-  K extends ActionKeys<S1>
+  K extends ActionKeysMap<S1>
 >(
   createStore: CreateStore<S1>,
   handler: (state: ReturnType<S1['$getState']>) => S,
-  actionKeys?: K[]
+  actionKeys?: K
 ) {
-  type SS = S & Pick<S1, K>;
+  type SS = S & Action<S1, K>;
   const storeContext = getContext(createStore);
   return <P>(
       TargetCom:
@@ -86,12 +86,12 @@ export function componentWithLocalStore<
 export function useLocalStore<
   S1 extends State<any, any, any, any>,
   S,
-  K extends ActionKeys<S1>
+  K extends ActionKeysMap<S1>
 >(
   createStore: CreateStore<S1>,
   handler: (state: ReturnType<S1['$getState']>) => S,
-  actionKeys?: K[]
-): [S, Pick<S1, K>, React.Provider<S1>] {
+  actionKeys?: K
+): [S, Action<S1, K>, React.Provider<S1>] {
   const storeContext = getContext(createStore);
   const store = useOnce(() => createStore());
   const [state, actions] = useStore(store, handler, actionKeys);
@@ -108,12 +108,12 @@ export function useLocalStore<
 export function useContextStore<
   S1 extends State<any, any, any, any>,
   S,
-  K extends ActionKeys<S1>
+  K extends ActionKeysMap<S1>
 >(
   createStore: CreateStore<S1>,
   handler: (state: ReturnType<S1['$getState']>) => S,
-  actionKeys?: K[]
-): [S, Pick<S1, K>] {
+  actionKeys?: K
+): [S, Action<S1, K>] {
   const store = useContext(getContext(createStore));
   return useStore(store, handler, actionKeys);
 }
@@ -128,13 +128,13 @@ export function useContextStore<
 export function componentWithContextStore<
   S1 extends State<any, any, any, any>,
   S,
-  K extends ActionKeys<S1>
+  K extends ActionKeysMap<S1>
 >(
   createStore: CreateStore<S1>,
   handler: (state: ReturnType<S1['$getState']>) => S,
-  actionKeys?: K[]
+  actionKeys?: K
 ) {
-  type SS = S & Pick<S1, K>;
+  type SS = S & Action<S1, K>;
   return <P>(
       TargetCom:
         | FunctionComponent<P>

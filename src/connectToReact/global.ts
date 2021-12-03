@@ -11,19 +11,19 @@ import type {
 } from 'react';
 import { createElement, useEffect, useState } from 'react';
 import type State from '../core/state';
-import type { ActionKeys, CreateStore } from '../types/helper';
-import { microDebounce } from '../utils';
+import type { Action, ActionKeysMap, CreateStore } from '../types/helper';
+import { makeActions, microDebounce } from '../utils';
 import { useOnce } from '../utils/hooks';
 
 export function useStore<
   S1 extends State<any, any, any, any>,
   S,
-  K extends ActionKeys<S1>
+  K extends ActionKeysMap<S1>
 >(
   store: S1,
   handler: (state: ReturnType<S1['$getState']>) => S,
-  actionKeys?: K[]
-): [S, Pick<S1, K>] {
+  actionKeys?: K
+): [S, Action<S1, K>] {
   const initState = useOnce(() => handler(store.$getState()));
   const [state, setState] = useState(initState);
   useEffect(() => {
@@ -32,24 +32,21 @@ export function useStore<
     };
     store.$watch(microDebounce(fun));
   }, [store]);
-  const actions = {} as Pick<S1, K>;
-  actionKeys?.forEach((key) => {
-    actions[key] = (store[key] as Function).bind(store);
-  });
+  const actions = makeActions(store, actionKeys);
   return [state, actions];
 }
 
 export function connect<
   S1 extends State<any, any, any, any>,
   S,
-  K extends ActionKeys<S1>,
+  K extends ActionKeysMap<S1>,
   ID
 >(
   createStore: [CreateStore<S1, ID>, ID],
   handler: (state: ReturnType<S1['$getState']>) => S,
-  actionKeys?: K[]
+  actionKeys?: K
 ) {
-  type SS = S & Pick<S1, K>;
+  type SS = S & Action<S1, K>;
   return <P>(
       TargetCom:
         | FunctionComponent<P>
