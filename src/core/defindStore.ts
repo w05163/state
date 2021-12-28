@@ -39,7 +39,7 @@ interface DefindOption<
 > {
   state: () => S;
   getter?: G;
-  children?: C;
+  store?: C;
   setup?: () => void | (() => void);
   actions?: A & ThisType<State<S, ChildrenObj<C>, G, M> & A>;
   mutations?: M & ThisType<null>;
@@ -59,13 +59,13 @@ export default function defindStore<
   const {
     state,
     getter = {},
-    children = {} as ChildrenOpt,
+    store = {} as ChildrenOpt,
     setup,
     actions = {},
     mutations,
   } = defindOption;
   const childrenIns = {} as ChildrenObj<C>;
-  Object.entries(children).forEach(([k, ch]) => {
+  Object.entries(store).forEach(([k, ch]) => {
     const key = k as keyof C;
     if (typeof ch === 'function') {
       childrenIns[key] = ch() as ChildrenIns<C[keyof C]>;
@@ -88,7 +88,7 @@ export default function defindStore<
       super({
         state: state(),
         getter: getter as G,
-        children: childrenIns,
+        store: childrenIns,
         id,
         mutations,
         mode,

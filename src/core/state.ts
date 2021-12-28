@@ -16,7 +16,7 @@ export type Mode = 'root' | 'temp';
 interface InitOption<S, C, G, M> {
   id: string;
   state: S;
-  children?: C;
+  store?: C;
   getter?: G;
   mutations?: M;
   mode?: Mode;
@@ -100,7 +100,7 @@ export default class State<
   private getterCache: Partial<GetterState<G>> = {};
 
   /** 所依赖的子State */
-  public children: C = {} as C;
+  public store: C = {} as C;
 
   /** 子State的状态 */
   protected childrenState: ChildrenState<C> = {} as ChildrenState<C>;
@@ -123,7 +123,7 @@ export default class State<
     id,
     state,
     getter,
-    children,
+    store,
     mutations,
     mode = 'root',
   }: InitOption<S, C, G, M>) {
@@ -132,9 +132,9 @@ export default class State<
 
     this.getter = this.$$createGetterState(getter);
     this.getterCache = {};
-    this.children = (children ?? {}) as C;
+    this.store = (store ?? {}) as C;
     this.state = state;
-    this.childrenState = this.$$initChildrenState(children);
+    this.childrenState = this.$$initChildrenState(store);
     this.handlers = [];
     this.clearTasks = [];
     this.id = id;
@@ -210,8 +210,8 @@ export default class State<
    * @param key
    * @param createStore
    */
-  public $pushChildren(key: ChildrenArrayKeys<C>, createStore: CreateStore) {
-    const childrenStoreArray = this.children[key] as Array<
+  public $pushStore(key: ChildrenArrayKeys<C>, createStore: CreateStore) {
+    const childrenStoreArray = this.store[key] as Array<
       ReturnType<CreateStore>
     >;
     const stateArray = this.childrenState[key] as Array<any>;

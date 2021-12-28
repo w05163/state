@@ -44,7 +44,7 @@ const usePage = defindStore({
     size: 10,
     finish: false,
   }),
-  children: {
+  store: {
     base,
   },
   actions: {
@@ -57,7 +57,7 @@ const usePage = defindStore({
 const useState1 = defindStore({
   setup() {},
   state: () => ({ msg: '', count: 1 }),
-  children: {
+  store: {
     pageObj: usePage,
     page1: [usePage, 4],
     page: [usePage, 'async'],
@@ -82,15 +82,15 @@ const useState1 = defindStore({
      */
     getData(n: string) {
       console.log('假装请求数据', n);
-      const msg = this.children.page1[0];
-      const msg1 = this.children.page1[3].ss();
-      const msg2 = this.children.pageObj.ss();
+      const msg = this.store.page1[0];
+      const msg1 = this.store.page1[3].ss();
+      const msg2 = this.store.pageObj.ss();
       this.$commit('setMsg', `${msg1}${msg2}`);
       return msg;
     },
     init() {
       this.getData(this.getter.getD.toString());
-      this.$pushChildren('page1', usePage);
+      this.$pushStore('page1', usePage);
     },
   },
   keys: {
